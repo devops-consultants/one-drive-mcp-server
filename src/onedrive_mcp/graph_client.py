@@ -123,6 +123,13 @@ class GraphClient:
     async def close(self):
         await self._client.aclose()
 
+    def __del__(self):
+        if not self._client.is_closed:
+            try:
+                self._client._transport.close()
+            except Exception:
+                pass
+
     def _headers(self, extra: dict[str, str] | None = None) -> dict[str, str]:
         headers = {"Authorization": f"Bearer {self.token}"}
         if extra:

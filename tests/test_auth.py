@@ -1,6 +1,5 @@
 """Tests for Bearer token authentication."""
 
-import pytest
 from onedrive_mcp.server import _extract_bearer_token
 
 

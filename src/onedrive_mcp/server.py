@@ -93,8 +93,8 @@ async def list_files(path: str = "/", ctx: Context = None) -> dict[str, Any] | l
     Args:
         path: Directory path to list (default: root "/")
     """
-    client = await _get_client(ctx)
     try:
+        client = await _get_client(ctx)
         return await client.list_files(path)
     except GraphAPIError as e:
         return _error_response(e)
@@ -107,8 +107,8 @@ async def read_file(path: str, ctx: Context = None) -> dict[str, Any]:
     Args:
         path: Path to the file to read
     """
-    client = await _get_client(ctx)
     try:
+        client = await _get_client(ctx)
         return await client.read_file(path)
     except GraphAPIError as e:
         return _error_response(e)
@@ -123,8 +123,8 @@ async def write_file(path: str, content: str, etag: str | None = None, ctx: Cont
         content: File content (text)
         etag: Optional ETag for optimistic concurrency (conflict detection)
     """
-    client = await _get_client(ctx)
     try:
+        client = await _get_client(ctx)
         return await client.write_file(path, content, etag)
     except GraphAPIError as e:
         return _error_response(e)
@@ -137,8 +137,8 @@ async def delete_file(path: str, ctx: Context = None) -> dict[str, Any]:
     Args:
         path: Path to the file to delete
     """
-    client = await _get_client(ctx)
     try:
+        client = await _get_client(ctx)
         return await client.delete_file(path)
     except GraphAPIError as e:
         return _error_response(e)
@@ -151,8 +151,8 @@ async def file_info(path: str, ctx: Context = None) -> dict[str, Any]:
     Args:
         path: Path to the file or folder
     """
-    client = await _get_client(ctx)
     try:
+        client = await _get_client(ctx)
         return await client.file_info(path)
     except GraphAPIError as e:
         return _error_response(e)
@@ -165,8 +165,8 @@ async def create_folder(path: str, ctx: Context = None) -> dict[str, Any]:
     Args:
         path: Path of the folder to create
     """
-    client = await _get_client(ctx)
     try:
+        client = await _get_client(ctx)
         return await client.create_folder(path)
     except GraphAPIError as e:
         return _error_response(e)
@@ -180,8 +180,8 @@ async def move_file(source: str, destination: str, ctx: Context = None) -> dict[
         source: Current path of the file
         destination: New path for the file
     """
-    client = await _get_client(ctx)
     try:
+        client = await _get_client(ctx)
         return await client.move_file(source, destination)
     except GraphAPIError as e:
         return _error_response(e)
