@@ -151,23 +151,20 @@ class GraphClient:
                 follow_redirects=follow_redirects,
             )
             if response.status_code == 429 and attempt < max_retries:
-                retry_after = int(response.headers.get("Retry-After", "1"))
+                retry_after = 1
+                try:
+                    retry_after = int(response.headers.get("Retry-After", "1"))
+                except ValueError:
+                    pass
                 logger.warning(f"Rate limited (429), retrying after {retry_after}s (attempt {attempt + 1})")
                 await asyncio.sleep(retry_after)
                 continue
             return response
-        return response  # Return last response if all retries exhausted
+        return response  # type guard: loop always returns, but keeps mypy happy
 
     async def list_files(self, path: str = "/") -> list[dict[str, Any]]:
         """List files in a folder."""
-        if not path or path == "/":
-            url = f"{GRAPH_BASE_URL}/me/drive/root/children"
-        else:
-            clean = path.strip().rstrip("/")
-            if not clean.startswith("/"):
-                clean = "/" + clean
-            url = f"{GRAPH_BASE_URL}/me/drive/root:{clean}:/children"
-
+        url = _build_path_url(path, "/children")
         url += "?$select=name,size,lastModifiedDateTime,file,folder,parentReference,eTag"
         response = await self._request("GET", url)
 
@@ -178,12 +175,12 @@ class GraphClient:
         entries = []
         for item in data.get("value", []):
             parent_path = item.get("parentReference", {}).get("path", "")
-            # parentReference.path is like /drive/root:/Documents
+            # parentReference.path is like /drive/root:/Documents or /drive/root:
             if ":" in parent_path:
-                parent = parent_path.split(":", 1)[1]
+                parent = parent_path.split(":", 1)[1] or "/"
             else:
                 parent = "/"
-            item_path = f"{parent}/{item['name']}".replace("//", "/")
+            item_path = f"{parent.rstrip('/')}/{item['name']}"
 
             entry: dict[str, Any] = {
                 "name": item["name"],
@@ -365,10 +362,10 @@ class GraphClient:
 
         parent_path = item.get("parentReference", {}).get("path", "")
         if ":" in parent_path:
-            parent = parent_path.split(":", 1)[1]
+            parent = parent_path.split(":", 1)[1] or "/"
         else:
             parent = "/"
-        item_path = f"{parent}/{item['name']}".replace("//", "/")
+        item_path = f"{parent.rstrip('/')}/{item['name']}"
 
         return {
             "name": item["name"],

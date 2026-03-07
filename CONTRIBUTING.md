@@ -10,11 +10,8 @@
 ### Install Dependencies
 
 ```bash
-# Install runtime dependencies
-pip install -r requirements.txt
-
-# Install development dependencies (includes test tools)
-pip install -r requirements-dev.txt
+# Install the package with development dependencies
+pip install -e ".[dev]"
 ```
 
 ### Run the Server Locally
@@ -28,7 +25,7 @@ The server starts on `http://localhost:8080` by default. Override with the `PORT
 ### Run Tests
 
 ```bash
-PYTHONPATH=src pytest tests/ -v
+pytest tests/ -v
 ```
 
 All tests use mocked HTTP responses (via `respx`) and do not require a Microsoft account or network access.

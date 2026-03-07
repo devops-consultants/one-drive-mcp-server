@@ -1,11 +1,8 @@
 """Tests for the Microsoft Graph API client."""
 
-import json
-import re
 import pytest
 import httpx
 import respx
-from respx.patterns import M
 
 from onedrive_mcp.graph_client import (
     GraphClient,
@@ -14,7 +11,6 @@ from onedrive_mcp.graph_client import (
     _map_error,
     is_text_mime,
     GRAPH_BASE_URL,
-    DEFAULT_MAX_FILE_SIZE,
 )
 
 
@@ -132,15 +128,6 @@ class TestGraphAPIError:
 
 
 # --- Integration tests with mocked HTTP ---
-
-
-def _url_startswith(prefix: str):
-    """Match URLs that start with the given prefix (ignoring query params)."""
-    def check(request: httpx.Request) -> bool:
-        url_str = str(request.url)
-        base_url = url_str.split("?")[0]
-        return base_url == prefix
-    return check
 
 
 @pytest.mark.asyncio
@@ -550,6 +537,32 @@ class TestGraphClientMoveFile:
         try:
             result = await client.move_file("/Documents/report.md", "/Documents/final-report.md")
             assert result == {"path": "/Documents/final-report.md"}
+        finally:
+            await client.close()
+
+    @respx.mock
+    async def test_move_source_not_found(self):
+        respx.patch(f"{GRAPH_BASE_URL}/me/drive/root:/Documents/nonexistent.txt:").mock(
+            return_value=httpx.Response(404, json={"error": {"message": "Item not found"}})
+        )
+        client = GraphClient(token="test-token")
+        try:
+            with pytest.raises(GraphAPIError) as exc_info:
+                await client.move_file("/Documents/nonexistent.txt", "/Documents/renamed.txt")
+            assert exc_info.value.error == "not_found"
+        finally:
+            await client.close()
+
+    @respx.mock
+    async def test_move_destination_parent_not_found(self):
+        respx.get(url__startswith=f"{GRAPH_BASE_URL}/me/drive/root:/nonexistent:").mock(
+            return_value=httpx.Response(404, json={"error": {"message": "Item not found"}})
+        )
+        client = GraphClient(token="test-token")
+        try:
+            with pytest.raises(GraphAPIError) as exc_info:
+                await client.move_file("/Documents/report.md", "/nonexistent/report.md")
+            assert exc_info.value.error == "not_found"
         finally:
             await client.close()
 

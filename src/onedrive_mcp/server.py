@@ -66,14 +66,19 @@ mcp.add_middleware(BearerTokenMiddleware())
 
 
 async def _get_client(ctx: Context) -> GraphClient:
-    """Get a GraphClient using the session's Bearer token."""
+    """Get or create a GraphClient cached in session state."""
+    client = await ctx.get_state("graph_client")
+    if client is not None:
+        return client
     token = await ctx.get_state("bearer_token")
     if not token:
         raise GraphAPIError(
             "authentication_required",
             "No Bearer token found in session. Provide an Authorization: Bearer <token> header.",
         )
-    return GraphClient(token=token, max_file_size=MAX_FILE_SIZE)
+    client = GraphClient(token=token, max_file_size=MAX_FILE_SIZE)
+    await ctx.set_state("graph_client", client)
+    return client
 
 
 def _error_response(e: GraphAPIError) -> dict[str, Any]:
@@ -93,8 +98,6 @@ async def list_files(path: str = "/", ctx: Context = None) -> dict[str, Any] | l
         return await client.list_files(path)
     except GraphAPIError as e:
         return _error_response(e)
-    finally:
-        await client.close()
 
 
 @mcp.tool
@@ -109,8 +112,6 @@ async def read_file(path: str, ctx: Context = None) -> dict[str, Any]:
         return await client.read_file(path)
     except GraphAPIError as e:
         return _error_response(e)
-    finally:
-        await client.close()
 
 
 @mcp.tool
@@ -127,8 +128,6 @@ async def write_file(path: str, content: str, etag: str | None = None, ctx: Cont
         return await client.write_file(path, content, etag)
     except GraphAPIError as e:
         return _error_response(e)
-    finally:
-        await client.close()
 
 
 @mcp.tool
@@ -143,8 +142,6 @@ async def delete_file(path: str, ctx: Context = None) -> dict[str, Any]:
         return await client.delete_file(path)
     except GraphAPIError as e:
         return _error_response(e)
-    finally:
-        await client.close()
 
 
 @mcp.tool
@@ -159,8 +156,6 @@ async def file_info(path: str, ctx: Context = None) -> dict[str, Any]:
         return await client.file_info(path)
     except GraphAPIError as e:
         return _error_response(e)
-    finally:
-        await client.close()
 
 
 @mcp.tool
@@ -175,8 +170,6 @@ async def create_folder(path: str, ctx: Context = None) -> dict[str, Any]:
         return await client.create_folder(path)
     except GraphAPIError as e:
         return _error_response(e)
-    finally:
-        await client.close()
 
 
 @mcp.tool
@@ -192,8 +185,6 @@ async def move_file(source: str, destination: str, ctx: Context = None) -> dict[
         return await client.move_file(source, destination)
     except GraphAPIError as e:
         return _error_response(e)
-    finally:
-        await client.close()
 
 
 # Health check endpoint
@@ -210,8 +201,6 @@ def create_app():
 
 def main():
     """Run the server."""
-    import uvicorn
-
     port = int(os.environ.get("PORT", "8080"))
     host = os.environ.get("HOST", "0.0.0.0")
 

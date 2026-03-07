@@ -2,12 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
+# Copy project metadata and install dependencies
+COPY pyproject.toml .
 COPY src/ ./src/
+RUN pip install --no-cache-dir .
 
 # Set Python path
 ENV PYTHONPATH=/app/src

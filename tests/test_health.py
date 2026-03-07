@@ -2,7 +2,7 @@
 
 import pytest
 from httpx import AsyncClient, ASGITransport
-from onedrive_mcp.server import mcp, create_app
+from onedrive_mcp.server import create_app
 
 
 @pytest.mark.asyncio
