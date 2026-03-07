@@ -56,7 +56,7 @@ This project uses OpenSpec for structured change management. Specs in `openspec/
 - Install: `pip install -e ".[dev]"` (uses pyproject.toml, not requirements.txt)
 - Tests: `pytest tests/ -v` (68 tests, all use mocked HTTP via `respx`)
 - Run locally: `python -m onedrive_mcp.server`
-- Python 3.11+ required (`.python-version` set to 3.11)
+- Python 3.12+ required (`.python-version` set to 3.12)
 
 ## Design Constraints
 

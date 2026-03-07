@@ -4,7 +4,7 @@
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.12+
 - pip
 
 ### Install Dependencies
