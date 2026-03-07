@@ -33,8 +33,8 @@ docker-compose up
 ### Local Development
 
 ```bash
-pip install -r requirements.txt
-PYTHONPATH=src python -m onedrive_mcp.server
+pip install -e ".[dev]"
+python -m onedrive_mcp.server
 ```
 
 ## Environment Variables
@@ -178,4 +178,4 @@ All errors follow a consistent format:
 
 ## License
 
-MIT
+Apache License 2.0 — see [LICENSE](LICENSE) for details.

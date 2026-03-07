@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 OneDrive MCP server using Python FastMCP with Streamable HTTP transport. Exposes path-based file operations (list, read, write, delete, move, create folder) against the Microsoft Graph API. Designed for containerized deployment alongside applications that manage OAuth token lifecycle.
 
-**Status:** Pre-implementation. OpenSpec change artifacts exist in `openspec/changes/onedrive-mcp-server/` defining the full design, specs, and task breakdown.
+**Status:** Implemented. Main specs in `openspec/specs/`, archived change in `openspec/changes/archive/`.
 
 ## Tech Stack
 
@@ -32,6 +32,11 @@ OneDrive MCP server using Python FastMCP with Streamable HTTP transport. Exposes
 - Configurable max file size (default 25MB)
 - Error mapping: 404 → not_found, 403 → permission_denied, 401 → auth_expired, 429 → rate_limited with Retry-After
 
+### Session State
+- `GraphClient` is cached in session state (`ctx.set_state("graph_client", ...)`) to reuse httpx connection pool
+- All tool handlers wrap `_get_client(ctx)` inside `try/except GraphAPIError` — auth errors must return structured responses, not propagate
+- `GraphClient.__del__` provides safety-net cleanup for unclosed connections
+
 ### Tools
 Seven tools with identical names/schemas to the companion Google Drive MCP server:
 - `list_files(path)` — list folder contents
@@ -44,7 +49,14 @@ Seven tools with identical names/schemas to the companion Google Drive MCP serve
 
 ## OpenSpec Workflow
 
-This project uses OpenSpec for structured change management. Change artifacts are in `openspec/`. Use the `/opsx:*` commands to work with changes (e.g., `/opsx:apply` to implement tasks).
+This project uses OpenSpec for structured change management. Specs in `openspec/specs/`, archived changes in `openspec/changes/archive/`. Use `/opsx:*` commands for new changes.
+
+## Development
+
+- Install: `pip install -e ".[dev]"` (uses pyproject.toml, not requirements.txt)
+- Tests: `pytest tests/ -v` (68 tests, all use mocked HTTP via `respx`)
+- Run locally: `python -m onedrive_mcp.server`
+- Python 3.11+ required (`.python-version` set to 3.11)
 
 ## Design Constraints
 
