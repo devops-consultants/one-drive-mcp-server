@@ -77,7 +77,7 @@ async def _get_client(ctx: Context) -> GraphClient:
             "No Bearer token found in session. Provide an Authorization: Bearer <token> header.",
         )
     client = GraphClient(token=token, max_file_size=MAX_FILE_SIZE)
-    await ctx.set_state("graph_client", client)
+    await ctx.set_state("graph_client", client, serializable=False)
     return client
 
 
